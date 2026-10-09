@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Scroll Controller</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom smooth scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 overflow-hidden flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm z-30">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-200">
+                <i class="fa-solid fa-crosshairs text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Pixel Scroll Target Search</h1>
+                <p class="text-xs text-slate-500">Precision 50px vertical & horizontal scroll navigation &bull; <span class="font-medium text-slate-600">Copyright ©️️ Innovation Independent Studio 2026</span></p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="hidden sm:flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Increment: <strong class="text-slate-800">50px</strong></span>
+            </div>
+            <button onclick="resetScroll()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition active:scale-95 flex items-center space-x-1.5">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Reset View</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 relative overflow-hidden flex">
+        
+        <!-- Floating Control Dock - Search Target Only -->
+        <div class="absolute bottom-6 right-6 z-40 bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-2xl rounded-2xl p-4 flex flex-col space-y-4 w-80 transition-all duration-300">
+            
+            <!-- Header & Stats -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+                    <i class="fa-solid fa-bullseye text-teal-600"></i>
+                    <span>Search Scroll Target</span>
+                </span>
+                <div class="flex items-center space-x-2">
+                    <span id="scroll-stats" class="text-[10px] font-mono bg-teal-50 text-teal-700 px-2 py-0.5 rounded">X:0, Y:0</span>
+                </div>
+            </div>
+
+            <!-- Specific Scroll Search Bar -->
+            <div class="flex flex-col space-y-3">
+                <span class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                    <span id="limit-label">Coordinates</span>
+                    <i class="fa-solid fa-magnifying-glass text-teal-600"></i>
+                </span>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] text-slate-500 font-medium">X Axis Target</label>
+                        <select id="search-x-target" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg p-1.5 focus:ring-teal-500 focus:border-teal-500 font-mono">
+                            <!-- Populated dynamically via JS based on max scroll width -->
+                        </select>
+                    </div>
+                    <div class="flex flex-col space-y-1">
+                        <label class="text-[10px] text-slate-500 font-medium">Y Axis Target</label>
+                        <select id="search-y-target" class="bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-lg p-1.5 focus:ring-teal-500 focus:border-teal-500 font-mono">
+                            <!-- Populated dynamically via JS based on max scroll height -->
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="executeScrollSearch()" class="w-full mt-1 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-95 flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <span>Execute Scroll Search</span>
+                </button>
+            </div>
+
+            <!-- Quick Jumps -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span class="text-slate-400">Quick Jump:</span>
+                <div class="space-x-1">
+                    <button onclick="scrollToPosition(0, 0)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded font-medium">Top-Left (0,0)</button>
+                    <button onclick="scrollToMax()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded font-medium">Max Limit</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="scroll-container" class="flex-1 overflow-auto relative p-8">
+            <div class="w-[2400px] h-[2400px] relative bg-gradient-to-br from-slate-100 via-teal-50/30 to-slate-200 rounded-3xl border border-slate-200 shadow-inner p-12 flex flex-col justify-between">
+                
+                <!-- Top-left anchor -->
+                <div class="w-80 border-2 border-dashed border-slate-300/60 rounded-3xl p-6 bg-white/40 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono font-bold text-slate-400">ZONE (X:0, Y:0)</span>
+                        <span class="px-2 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full">Origin</span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Starting Anchor</h3>
+                    <p class="text-xs text-slate-500">Use the target search dock at bottom-right to navigate precisely.</p>
+                </div>
+
+                <!-- Center target focal point -->
+                <div class="absolute top-[1000px] left-[1000px] w-96 bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-slate-200">
+                    <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center text-xl font-bold mb-4 shadow-sm">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Target Station</h2>
+                    <p class="text-sm text-slate-600 mb-6">You have reached this coordinate target position.</p>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="scrollToPosition(0,0)" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow transition">
+                            Return to Top-Left
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const scrollContainer = document.getElementById('scroll-container');
+        const scrollStats = document.getElementById('scroll-stats');
+        const searchXTarget = document.getElementById('search-x-target');
+        const searchYTarget = document.getElementById('search-y-target');
+        const limitLabel = document.getElementById('limit-label');
+
+        // Calculate maximum scroll limits based on container and content dimensions
+        function getMaxScrollLimits() {
+            const maxX = Math.max(0, scrollContainer.scrollWidth - scrollContainer.clientWidth);
+            const maxY = Math.max(0, scrollContainer.scrollHeight - scrollContainer.clientHeight);
+            return { maxX, maxY };
+        }
+
+        // Populate search dropdowns in 50px increments up to the page scroll limit
+        function initSearchDropdowns() {
+            const { maxX, maxY } = getMaxScrollLimits();
+            
+            // Clear existing options if any
+            searchXTarget.innerHTML = '';
+            searchYTarget.innerHTML = '';
+
+            // Populate X axis in 50px increments up to maxX limit
+            for (let i = 0; i <= maxX; i += 50) {
+                const optionX = document.createElement('option');
+                optionX.value = i;
+                optionX.textContent = `${i}px`;
+                searchXTarget.appendChild(optionX);
+            }
+            // Ensure exact max is included if not a multiple of 50
+            if (maxX % 50 !== 0 && maxX > 0) {
+                const optionX = document.createElement('option');
+                optionX.value = maxX;
+                optionX.textContent = `${maxX}px (Max)`;
+                searchXTarget.appendChild(optionX);
+            }
+
+            // Populate Y axis in 50px increments up to maxY limit
+            for (let i = 0; i <= maxY; i += 50) {
+                const optionY = document.createElement('option');
+                optionY.value = i;
+                optionY.textContent = `${i}px`;
+                searchYTarget.appendChild(optionY);
+            }
+            // Ensure exact max is included if not a multiple of 50
+            if (maxY % 50 !== 0 && maxY > 0) {
+                const optionY = document.createElement('option');
+                optionY.value = maxY;
+                optionY.textContent = `${maxY}px (Max)`;
+                searchYTarget.appendChild(optionY);
+            }
+
+            limitLabel.textContent = `Coordinates (Max X:${maxX}px, Y:${maxY}px)`;
+        }
+
+        // Initialize dropdowns on load
+        window.addEventListener('load', () => {
+            initSearchDropdowns();
+        });
+
+        // Re-calculate on window resize in case dimensions shift
+        window.addEventListener('resize', () => {
+            initSearchDropdowns();
+        });
+
+        // Execute specific horizontal and vertical scroll search based on dropdown selections
+        function executeScrollSearch() {
+            const targetX = parseInt(searchXTarget.value, 10);
+            const targetY = parseInt(searchYTarget.value, 10);
+            scrollToPosition(targetX, targetY);
+        }
+
+        // Function to scroll to specific coordinates
+        function scrollToPosition(x, y) {
+            scrollContainer.scrollTo({
+                left: x,
+                top: y,
+                behavior: 'smooth'
+            });
+            searchXTarget.value = x;
+            searchYTarget.value = y;
+        }
+
+        // Quick jump to max scroll limits
+        function scrollToMax() {
+            const { maxX, maxY } = getMaxScrollLimits();
+            scrollToPosition(maxX, maxY);
+        }
+
+        // Reset scroll position to top origin
+        function resetScroll() {
+            scrollToPosition(0, 0);
+        }
+
+        // Update live coordinate monitor on scroll
+        scrollContainer.addEventListener('scroll', () => {
+            const x = Math.round(scrollContainer.scrollLeft);
+            const y = Math.round(scrollContainer.scrollTop);
+            scrollStats.textContent = `X:${x}, Y:${y}`;
+        });
+
+        // Initial stats render
+        scrollStats.textContent = `X:${scrollContainer.scrollLeft}, Y:${scrollContainer.scrollTop}`;
+    </script>
+
+</body>
+</html>
